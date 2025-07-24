@@ -109,7 +109,7 @@ Cloud-Document-Collaboration/
 ---
 
 ## 👤 Author
-
+**Name**: Ashritha G 
 **GitHub**: [ashrikalai](https://github.com/ashrikalai)
 
 ---
