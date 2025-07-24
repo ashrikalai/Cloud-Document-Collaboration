@@ -106,10 +106,3 @@ Cloud-Document-Collaboration/
 └── package.json
 ```
 
----
-
-## 👤 Author
-**Name**: Ashritha G 
-**GitHub**: [ashrikalai](https://github.com/ashrikalai)
-
----
