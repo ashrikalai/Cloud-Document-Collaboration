@@ -45,7 +45,7 @@ npm install
 Create a `.env` file in the root directory and fill it like below:
 
 ```
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<database>?retryWrites=true&w=majority
+MONGO_URI=your_mongodb_uri
 JWT_SECRET=your_secret_key
 PORT=5000
 ```
