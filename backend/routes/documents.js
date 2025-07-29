@@ -1,9 +1,9 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Document = require("../models/Document");
 const authMiddleware = require("../middleware/auth");
 
-// ✅ Create a new document
 router.post("/create", authMiddleware, async (req, res) => {
   try {
     const { title } = req.body;
@@ -11,7 +11,7 @@ router.post("/create", authMiddleware, async (req, res) => {
     const document = new Document({
       title,
       content: "",
-      userId: req.user.id, // 🟢 Matches schema
+      userId: req.user.id,
     });
 
     await document.save();
@@ -22,7 +22,6 @@ router.post("/create", authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Get all documents created by the logged-in user
 router.get("/mine", authMiddleware, async (req, res) => {
   try {
     const documents = await Document.find({ userId: req.user.id });
@@ -33,57 +32,20 @@ router.get("/mine", authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ Get a document by ID (public for now)
-router.get("/:id", async (req, res) => {
-  try {
-    const document = await Document.findById(req.params.id);
-    if (!document) {
-      return res.status(404).json({ error: "Document not found" });
-    }
-    res.json(document);
-  } catch (err) {
-    console.error("Error fetching document:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// ✅ Update document (title and/or content)
-router.put("/:id", authMiddleware, async (req, res) => {
-  try {
-    const { content, title } = req.body;
-    const document = await Document.findById(req.params.id);
-
-    if (!document) {
-      return res.status(404).json({ error: "Document not found" });
-    }
-
-    // 🛡️ Only allow the owner to update
-    if (document.userId.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Unauthorized" });
-    }
-
-    // 🔄 Update only fields that are provided
-    if (content !== undefined) document.content = content;
-    if (title !== undefined) document.title = title;
-
-    await document.save();
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Error updating document:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-// ✅ Rename a document (only title)
 router.patch('/:id/rename', authMiddleware, async (req, res) => {
   try {
     const { newTitle } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid document ID" });
+    }
+
     const document = await Document.findById(req.params.id);
 
     if (!document) {
       return res.status(404).json({ error: "Document not found" });
     }
 
-    // 🛡️ Ensure only the owner can rename
     if (document.userId.toString() !== req.user.id) {
       return res.status(403).json({ error: "Unauthorized" });
     }
@@ -97,6 +59,36 @@ router.patch('/:id/rename', authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    const { content, title } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: "Invalid document ID" });
+    }
+
+    const document = await Document.findById(req.params.id);
+
+    if (!document) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    if (document.userId.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    if (content !== undefined) document.content = content;
+    if (title !== undefined) document.title = title;
+
+    await document.save();
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error updating document:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const docs = await Document.find({}, "_id title");
@@ -106,5 +98,23 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid document ID" });
+  }
+
+  try {
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    res.json(document);
+  } catch (err) {
+    console.error("Error fetching document:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 module.exports = router;

@@ -11,7 +11,7 @@ module.exports = function (req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.userId }; // ✅ Ensure consistent property
+    req.user = { id: decoded.userId }; 
     next();
   } catch (err) {
     console.error("Token verification failed:", err.message);
